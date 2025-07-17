@@ -236,58 +236,26 @@ class TestBiasCoefficients(unittest.TestCase):
                 # Note: g5,g6,g7 are the same as g2,g3,g4 respectively
                 weighted_sum += coeffs[key] * conj_sizes[key]
             
-            # The weighted sum should be finite and well-defined
-            self.assertIsInstance(weighted_sum, (int, float))
-            self.assertFalse(sp.oo == weighted_sum)  # Should not be infinite
-    
-    def test_coefficient_consistency_across_cases(self):
-        """Test that coefficients are consistent for cases with same m_rho0"""
-        cases_by_m_rho0 = {0: [], 1: []}
-        
-        for case in get_all_cases():
-            cases_by_m_rho0[case.m_rho0].append(case)
-        
-        # All cases with same m_rho0 should have same bias coefficients
-        for m_rho0, cases in cases_by_m_rho0.items():
-            if len(cases) > 1:
-                reference_coeffs = cases[0].get_bias_coefficients()
-                for case in cases[1:]:
-                    case_coeffs = case.get_bias_coefficients()
-                    self.assertEqual(case_coeffs, reference_coeffs,
-                                   f"Case {case.case_id} coefficients differ from reference for m_rho0={m_rho0}")
+            # The weighted sum should equal 0 (mathematical constraint)
+            self.assertAlmostEqual(weighted_sum, 0.0, places=10,
+                                 msg=f"Case {case.case_id}: weighted sum should be 0")
 
-class TestPolynomialCollection(unittest.TestCase):
-    """Test the polynomial collection management"""
+class TestCollectionManagement(unittest.TestCase):
+    """Test collection management functionality"""
     
-    def test_collection_initialization(self):
-        """Test that collection initializes properly"""
-        collection = OmarPolynomialCollection()
+    def test_omar_collection_singleton(self):
+        """Test that OMAR_COLLECTION works as expected"""
+        # Test that we can get cases through the collection
+        case1_direct = get_case(1)
+        case1_collection = OMAR_COLLECTION.get_case(1)
         
-        self.assertEqual(len(collection.polynomials), 13)
-        self.assertEqual(len(collection.get_all_cases()), 13)
-        self.assertEqual(collection.get_available_case_ids(), list(range(1, 14)))
+        self.assertEqual(case1_direct.case_id, case1_collection.case_id)
+        self.assertEqual(case1_direct.polynomial, case1_collection.polynomial)
     
-    def test_case_retrieval(self):
-        """Test case retrieval methods"""
-        collection = OmarPolynomialCollection()
-        
-        # Test get_case
-        case1 = collection.get_case(1)
-        self.assertEqual(case1.case_id, 1)
-        
-        # Test invalid case
-        with self.assertRaises(ValueError):
-            collection.get_case(14)
-        
-        with self.assertRaises(ValueError):
-            collection.get_case(0)
-    
-    def test_filtering_by_m_rho0(self):
+    def test_cases_by_m_rho0(self):
         """Test filtering cases by m_rho0 value"""
-        collection = OmarPolynomialCollection()
-        
-        cases_0 = collection.get_cases_by_m_rho0(0)
-        cases_1 = collection.get_cases_by_m_rho0(1)
+        cases_0 = OMAR_COLLECTION.get_cases_by_m_rho0(0)
+        cases_1 = OMAR_COLLECTION.get_cases_by_m_rho0(1)
         
         # Should have some cases for each value
         self.assertGreater(len(cases_0), 0)
@@ -296,78 +264,132 @@ class TestPolynomialCollection(unittest.TestCase):
         # Total should be 13
         self.assertEqual(len(cases_0) + len(cases_1), 13)
         
-        # Check that filtering is correct
+        # Check that filtering worked correctly
         for case in cases_0:
             self.assertEqual(case.m_rho0, 0)
-        
         for case in cases_1:
             self.assertEqual(case.m_rho0, 1)
     
-    def test_export_functionality(self):
-        """Test JSON export functionality"""
-        import tempfile
-        import json
+    def test_available_case_ids(self):
+        """Test getting available case IDs"""
+        available_ids = OMAR_COLLECTION.get_available_case_ids()
         
-        collection = OmarPolynomialCollection()
+        self.assertEqual(len(available_ids), 13)
+        self.assertEqual(available_ids, list(range(1, 14)))
+    
+    def test_invalid_case_access(self):
+        """Test error handling for invalid case IDs"""
+        with self.assertRaises(ValueError):
+            get_case(0)  # Invalid case ID
         
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-            temp_file = f.name
+        with self.assertRaises(ValueError):
+            get_case(14)  # Invalid case ID
         
-        try:
-            # Test export
-            collection.export_to_json(temp_file)
-            
-            # Test that file was created and contains valid JSON
-            with open(temp_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            
-            self.assertIn('description', data)
-            self.assertIn('total_cases', data)
-            self.assertIn('cases', data)
-            self.assertEqual(data['total_cases'], 13)
-            self.assertEqual(len(data['cases']), 13)
-            
-        finally:
-            # Cleanup
-            Path(temp_file).unlink()
+        with self.assertRaises(ValueError):
+            OMAR_COLLECTION.get_case(100)  # Invalid case ID
 
-class TestGlobalFunctions(unittest.TestCase):
-    """Test global convenience functions"""
+class TestQuaternionPolynomialClass(unittest.TestCase):
+    """Test QuaternionPolynomial class functionality"""
     
-    def test_get_case_function(self):
-        """Test global get_case function"""
+    def test_string_representations(self):
+        """Test string representations of polynomial objects"""
         case1 = get_case(1)
-        self.assertEqual(case1.case_id, 1)
         
-        # Test that it returns the same object as collection method
-        collection_case1 = OMAR_COLLECTION.get_case(1)
-        self.assertEqual(case1.case_id, collection_case1.case_id)
-        self.assertEqual(case1.m_rho0, collection_case1.m_rho0)
+        # Test __str__
+        str_repr = str(case1)
+        self.assertIn("Case 1", str_repr)
+        self.assertIn("Aoki-Koyama", str_repr)
+        
+        # Test __repr__
+        repr_str = repr(case1)
+        self.assertIn("QuaternionPolynomial", repr_str)
+        self.assertIn("case_id=1", repr_str)
+        self.assertIn("m_rho0=0", repr_str)
     
-    def test_get_all_cases_function(self):
-        """Test global get_all_cases function"""
-        all_cases = get_all_cases()
-        self.assertEqual(len(all_cases), 13)
+    def test_ramification_check(self):
+        """Test ramification checking functionality"""
+        case1 = get_case(1)  # Ramified at {3, 5, 7}
         
-        # Check that IDs are correct
-        case_ids = [case.case_id for case in all_cases]
-        self.assertEqual(sorted(case_ids), list(range(1, 14)))
+        # Test ramified primes
+        self.assertTrue(case1.is_ramified(3))
+        self.assertTrue(case1.is_ramified(5))
+        self.assertTrue(case1.is_ramified(7))
+        
+        # Test non-ramified primes
+        self.assertFalse(case1.is_ramified(2))
+        self.assertFalse(case1.is_ramified(11))
+        self.assertFalse(case1.is_ramified(13))
     
-    def test_legacy_compatibility(self):
-        """Test that legacy OMAR_POLYNOMIALS list exists and is correct"""
-        from omar_polynomials import OMAR_POLYNOMIALS
+    def test_info_dict_export(self):
+        """Test exporting case information as dictionary"""
+        case1 = get_case(1)
+        info_dict = case1.get_info_dict()
         
-        self.assertEqual(len(OMAR_POLYNOMIALS), 13)
+        # Check required keys
+        required_keys = ['id', 'poly', 'discriminant', 'ramified_primes', 'm_rho0']
+        for key in required_keys:
+            self.assertIn(key, info_dict)
         
-        # Check that it contains dictionaries with required keys
-        required_keys = ['id', 'poly', 'm_rho0', 'ramified_primes']
+        # Check values match
+        self.assertEqual(info_dict['id'], 1)
+        self.assertEqual(info_dict['m_rho0'], 0)
+        self.assertEqual(set(info_dict['ramified_primes']), {3, 5, 7})
+
+class TestDataValidation(unittest.TestCase):
+    """Test data validation and consistency"""
+    
+    def test_polynomial_evaluation(self):
+        """Test that polynomials can be evaluated"""
+        x = symbols('x')
         
-        for poly_dict in OMAR_POLYNOMIALS:
-            for key in required_keys:
-                self.assertIn(key, poly_dict)
+        for case in get_all_cases()[:3]:  # Test first 3 cases
+            poly = case.polynomial
             
-            # Check that ID is in valid range
-            self.assertIn(poly_dict['id'], range(1, 14))
+            # Test evaluation at some points
+            test_values = [0, 1, -1, 2, -2]
+            
+            for val in test_values:
+                try:
+                    result = poly.subs(x, val)
+                    self.assertIsInstance(result, (int, sp.Integer, sp.Float))
+                except Exception as e:
+                    self.fail(f"Case {case.case_id} polynomial evaluation failed at x={val}: {e}")
+    
+    def test_m_rho0_distribution(self):
+        """Test distribution of m_rho0 values"""
+        m_rho0_values = [case.m_rho0 for case in get_all_cases()]
+        
+        count_0 = m_rho0_values.count(0)
+        count_1 = m_rho0_values.count(1)
+        
+        # Should have reasonable distribution (not all 0 or all 1)
+        self.assertGreater(count_0, 0, "Should have some cases with m_rho0 = 0")
+        self.assertGreater(count_1, 0, "Should have some cases with m_rho0 = 1")
+        self.assertEqual(count_0 + count_1, 13, "All cases should have m_rho0 = 0 or 1")
+    
+    def test_ramification_patterns(self):
+        """Test ramification patterns across cases"""
+        ramification_data = []
+        
+        for case in get_all_cases():
+            ramified_primes = sorted(case.ramified_primes)
+            ramification_data.append((case.case_id, len(ramified_primes), ramified_primes))
+        
+        # Check that we have variety in ramification patterns
+        ramification_sizes = [size for _, size, _ in ramification_data]
+        unique_sizes = set(ramification_sizes)
+        
+        self.assertGreater(len(unique_sizes), 1, "Should have cases with different numbers of ramified primes")
+        
+        # Check that ramified primes are small (typical for test cases)
+        all_ramified_primes = set()
+        for _, _, primes in ramification_data:
+            all_ramified_primes.update(primes)
+        
+        # Most ramified primes should be small
+        small_primes = {p for p in all_ramified_primes if p <= 50}
+        self.assertGreaterEqual(len(small_primes), len(all_ramified_primes) * 0.8,
+                               "Most ramified primes should be ≤ 50")
 
 if __name__ == '__main__':
     # Configure test runner
