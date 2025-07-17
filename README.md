@@ -1,6 +1,6 @@
 # Q8 Galois Extension Prime Bias Experiment
 
-青木美穂・小山新也論文「Chebyshev's Bias against Splitting and Principal Primes in Global Fields」(arXiv:2203.12266) のExample 2.1におけるQ8（第四四元数群）をガロア群とする体についての素数の偏りに関する数値実験環境です。
+青木美穂・小山信也論文「Chebyshev's Bias against Splitting and Principal Primes in Global Fields」(arXiv:2203.12266) のExample 2.1におけるQ8（第四四元数群）をガロア群とする体についての素数の偏りに関する数値実験環境です。
 
 ## 🎯 プロジェクト概要
 
