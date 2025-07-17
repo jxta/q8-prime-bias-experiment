@@ -1,139 +1,239 @@
 # Q8 Prime Bias Experiment Configuration
+# =====================================
+# Configuration file for Quaternion Galois extension prime bias experiments
+# Based on Aoki-Koyama paper Example 2.1
 
-# Experiment settings
-experiment:
-  name: "Q8_Prime_Bias_Analysis"
-  version: "1.0.0"
-  description: "Numerical experiments for Chebyshev bias in Q8 Galois extensions"
-
-# Computation parameters
+# Computation Settings
 computation:
-  # Default maximum prime for different experiment scales
-  small_scale: 10000        # 10^4 for quick tests
-  medium_scale: 100000      # 10^5 for development
-  large_scale: 1000000      # 10^6 for research
-  huge_scale: 1000000000    # 10^9 for production
+  # Predefined scales for different use cases
+  small_scale: 10000        # 10^4 primes - for quick tests and development
+  medium_scale: 100000      # 10^5 primes - for intermediate testing
+  large_scale: 1000000      # 10^6 primes - for research quality results
+  huge_scale: 1000000000    # 10^9 primes - for production scale analysis
   
-  # Parallel processing
+  # Parallel processing configuration
   parallel:
-    enabled: true
-    max_processes: null     # null = auto-detect CPU cores
-    batch_size: 50000       # Primes per batch for parallel processing
+    enabled: true           # Enable parallel processing
+    max_processes: null     # null = auto-detect optimal number of processes
+    batch_size: 50000       # Number of primes per batch for parallel processing
+    memory_limit_gb: 8      # Memory usage limit in GB
+  
+  # Advanced computation settings
+  advanced:
+    cache_size: 10000       # Kronecker symbol cache size
+    progress_update_interval: 1.0  # Progress update interval in seconds
+    checkpoint_interval: 100000     # Save intermediate results every N primes
     
-  # Memory management
-  memory:
-    chunk_size: 100000      # Process primes in chunks
-    save_intermediate: true # Save intermediate results
-    
-# Graph generation settings
+# Case Selection
+cases:
+  # Which cases to run (1-13 for all Omar S. cases)
+  enabled: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+  
+  # Priority cases for quick testing
+  priority: [1, 2, 3]
+  
+  # Cases grouped by m_ρ₀ value
+  m_rho0_0: [1, 4, 6, 8, 10, 12]  # Cases with m_ρ₀ = 0
+  m_rho0_1: [2, 3, 5, 7, 9, 11, 13]  # Cases with m_ρ₀ = 1
+
+# Visualization Settings
 visualization:
-  # Graph properties
+  # Graph appearance
   graphs:
-    figsize: [18, 12]       # Figure size (width, height)
-    dpi: 150                # Resolution
+    figsize: [20, 16]       # Figure size in inches
+    dpi: 300                # Resolution for saved images
     style: "seaborn-v0_8"   # Matplotlib style
+    color_palette: "husl"   # Seaborn color palette
+    
+  # Plot-specific settings
+  bias_plots:
+    point_size: 1           # Size of scatter plot points
+    line_width: 2           # Width of theoretical lines
+    alpha: 0.6              # Transparency of points
+    grid_alpha: 0.3         # Grid transparency
     
   # Sampling for large datasets
   sampling:
-    target_points: 500      # Target number of points for plotting
-    use_log_sampling: true  # Use logarithmic sampling for large ranges
+    max_points_per_plot: 1000  # Maximum points to plot for performance
+    target_points: 500         # Target number of points for sampling
     
-  # Colors for different Frobenius elements
-  colors:
-    g0: "red"      # 1
-    g1: "blue"     # -1
-    g2: "green"    # i
-    g3: "orange"   # j
-    g4: "purple"   # k
-    theoretical: "black"
+  # Output formats
+  output:
+    save_pdf: true          # Save as PDF
+    save_png: false         # Save as PNG
+    save_interactive: true  # Save interactive HTML (if Plotly available)
     
-# Output settings
-output:
-  # Directory structure
-  directories:
-    data: "data/results"
-    graphs: "graphs/output"
-    logs: "logs"
+# Data Management
+data:
+  # Storage settings
+  storage:
+    save_intermediate: true  # Save intermediate computation results
+    compression: false       # Compress saved data files
+    backup_results: true     # Keep backup copies of results
     
   # File naming
   naming:
-    frobenius_data: "case_{case_id:02d}_frobenius_{max_prime}.json"
-    bias_graphs: "case_{case_id:02d}_bias_{max_prime}.png"
-    summary_report: "summary_report_{timestamp}.html"
+    include_timestamp: true  # Include timestamp in filenames
+    include_scale: true      # Include scale (e.g., 1M, 1B) in filenames
     
-  # Data export formats
-  export:
-    json: true              # Export as JSON
-    csv: true               # Export as CSV
-    hdf5: false             # Export as HDF5 (for very large datasets)
-    
-# Case-specific settings
-cases:
-  # Enable/disable specific cases
-  enabled: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-  
-  # Priority order for computation (highest priority first)
-  priority: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-  
-  # Custom settings per case (if needed)
-  custom_settings: {}
+  # Cleanup settings
+  cleanup:
+    auto_cleanup: false      # Automatically remove old files
+    keep_latest: 5           # Number of latest files to keep per case
 
-# Theoretical values for validation
-theory:
-  # Bias coefficients M(σ) + m(σ)
-  bias_coefficients:
-    m_rho0_0:  # When m_ρ₀ = 0
-      g0: 0.5    # 1
-      g1: 2.5    # -1
-      g2: -0.5   # i
-      g3: -0.5   # j
-      g4: -0.5   # k
-      g5: -0.5   # -i
-      g6: -0.5   # -j
-      g7: -0.5   # -k
-    m_rho0_1:  # When m_ρ₀ = 1
-      g0: 2.5    # 1
-      g1: 0.5    # -1
-      g2: -0.5   # i
-      g3: -0.5   # j
-      g4: -0.5   # k
-      g5: -0.5   # -i
-      g6: -0.5   # -j
-      g7: -0.5   # -k
+# Analysis Settings
+analysis:
+  # Statistical analysis
+  statistics:
+    confidence_level: 0.95   # Confidence level for statistical tests
+    min_points_regression: 10  # Minimum points required for regression
+    convergence_window: 100    # Window size for convergence analysis
+    
+  # Bias function settings
+  bias_functions:
+    # Theoretical bias coefficients (will be overridden by case-specific values)
+    default_m_rho0_0:
+      g0: 0.5    # M(1) + m(1) for m_ρ₀ = 0
+      g1: 2.5    # M(-1) + m(-1) for m_ρ₀ = 0
+      g2: -0.5   # M(i) + m(i) for m_ρ₀ = 0
+      g3: -0.5   # M(j) + m(j) for m_ρ₀ = 0
+      g4: -0.5   # M(k) + m(k) for m_ρ₀ = 0
       
-  # Conjugacy class sizes
-  conjugacy_sizes:
-    g0: 1  # {1}
-    g1: 1  # {-1}
-    g2: 2  # {i, -i}
-    g3: 2  # {j, -j}
-    g4: 2  # {k, -k}
+    default_m_rho0_1:
+      g0: 2.5    # M(1) + m(1) for m_ρ₀ = 1
+      g1: 0.5    # M(-1) + m(-1) for m_ρ₀ = 1
+      g2: -0.5   # M(i) + m(i) for m_ρ₀ = 1
+      g3: -0.5   # M(j) + m(j) for m_ρ₀ = 1
+      g4: -0.5   # M(k) + m(k) for m_ρ₀ = 1
+      
+# Experimental Scenarios
+scenarios:
+  # Quick test scenario
+  quick_test:
+    description: "Quick test with minimal computation"
+    cases: [1, 2]
+    max_prime: 10000
+    parallel: true
+    num_processes: 4
     
-# Logging settings
-logging:
-  level: "INFO"             # DEBUG, INFO, WARNING, ERROR
-  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-  file_logging: true
-  console_logging: true
-  
-# Validation and testing
-validation:
-  # Run small-scale validation before large computations
-  run_validation: true
-  validation_max_prime: 1000
-  
-  # Statistical tests
-  statistical_tests:
-    enabled: true
-    confidence_level: 0.95
+  # Development scenario  
+  development:
+    description: "Development testing with moderate scale"
+    cases: [1, 2, 3, 4, 5]
+    max_prime: 100000
+    parallel: true
     
-# Performance monitoring
+  # Research scenario
+  research:
+    description: "Research-quality analysis"
+    cases: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+    max_prime: 1000000
+    parallel: true
+    
+  # Production scenario
+  production:
+    description: "Full-scale production analysis"
+    cases: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+    max_prime: 1000000000
+    parallel: true
+    estimated_time_hours: 24
+    
+# Performance Settings
 performance:
-  # Monitor computation time and memory usage
-  monitoring: true
+  # Memory management
+  memory:
+    chunk_size: 1000000     # Process primes in chunks of this size
+    gc_interval: 10         # Garbage collection interval (in chunks)
+    
+  # CPU optimization
+  cpu:
+    use_all_cores: false    # Use all available CPU cores
+    core_usage_percent: 75  # Percentage of cores to use
+    
+  # I/O optimization
+  io:
+    buffer_size: 8192       # File I/O buffer size
+    async_io: false         # Use asynchronous I/O (experimental)
+    
+# Logging and Monitoring
+logging:
+  # Log levels: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  level: INFO
   
-  # Estimate completion time
-  time_estimation: true
+  # Log output
+  console: true             # Log to console
+  file: true                # Log to file
+  log_file: "logs/experiment.log"
   
-  # Save performance metrics
-  save_metrics: true
+  # Progress tracking
+  progress:
+    enabled: true           # Enable progress bars
+    update_frequency: 1.0   # Update frequency in seconds
+    
+# Development and Debug Settings
+debug:
+  # Debug modes
+  verbose: true             # Verbose output
+  profile: false            # Enable performance profiling
+  
+  # Testing
+  dry_run: false            # Perform dry run without actual computation
+  skip_validation: false    # Skip input validation (dangerous!)
+  
+  # Memory debugging
+  memory_tracking: false    # Track memory usage
+  memory_limit_strict: false  # Enforce strict memory limits
+
+# Integration Settings
+integration:
+  # Jupyter notebook settings
+  jupyter:
+    auto_display: true      # Automatically display results in notebooks
+    inline_plots: true      # Show plots inline
+    progress_widgets: true  # Use IPython widgets for progress
+    
+  # External tools
+  sage:
+    enabled: false          # Enable SageMath integration
+    comparison_mode: false  # Compare results with SageMath
+    
+  julia:
+    enabled: false          # Enable Julia integration (future)
+
+# Validation and Quality Control
+validation:
+  # Input validation
+  check_primality: true     # Verify that inputs are actually prime
+  check_polynomials: true   # Validate polynomial definitions
+  
+  # Output validation
+  sanity_checks: true       # Perform sanity checks on results
+  statistical_tests: true   # Run statistical validation tests
+  
+  # Comparison with known results
+  benchmark_cases: [1]      # Cases to benchmark against known results
+  tolerance: 0.01           # Tolerance for benchmark comparisons
+
+# Metadata and Documentation
+metadata:
+  experiment_name: "Q8 Prime Bias Analysis"
+  version: "1.0.0"
+  author: "Based on Aoki-Koyama 2022"
+  description: |
+    Numerical experiments for Chebyshev bias in Q8 Galois extensions.
+    Implementation of Example 2.1 from Aoki, M. and Koyama, S. (2022).
+    Chebyshev's Bias against Splitting and Principal Primes in Global Fields.
+    arXiv:2203.12266
+  
+  # Citation information
+  citation:
+    paper: "arXiv:2203.12266"
+    title: "Chebyshev's Bias against Splitting and Principal Primes in Global Fields"
+    authors: ["Miho Aoki", "Shin-ya Koyama"]
+    year: 2022
+    
+  # Implementation details
+  implementation:
+    language: "Python 3.8+"
+    dependencies: ["numpy", "matplotlib", "sympy", "scipy", "sklearn", "tqdm"]
+    optional_dependencies: ["plotly", "seaborn", "psutil"]
