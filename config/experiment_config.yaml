@@ -1,0 +1,139 @@
+# Q8 Prime Bias Experiment Configuration
+
+# Experiment settings
+experiment:
+  name: "Q8_Prime_Bias_Analysis"
+  version: "1.0.0"
+  description: "Numerical experiments for Chebyshev bias in Q8 Galois extensions"
+
+# Computation parameters
+computation:
+  # Default maximum prime for different experiment scales
+  small_scale: 10000        # 10^4 for quick tests
+  medium_scale: 100000      # 10^5 for development
+  large_scale: 1000000      # 10^6 for research
+  huge_scale: 1000000000    # 10^9 for production
+  
+  # Parallel processing
+  parallel:
+    enabled: true
+    max_processes: null     # null = auto-detect CPU cores
+    batch_size: 50000       # Primes per batch for parallel processing
+    
+  # Memory management
+  memory:
+    chunk_size: 100000      # Process primes in chunks
+    save_intermediate: true # Save intermediate results
+    
+# Graph generation settings
+visualization:
+  # Graph properties
+  graphs:
+    figsize: [18, 12]       # Figure size (width, height)
+    dpi: 150                # Resolution
+    style: "seaborn-v0_8"   # Matplotlib style
+    
+  # Sampling for large datasets
+  sampling:
+    target_points: 500      # Target number of points for plotting
+    use_log_sampling: true  # Use logarithmic sampling for large ranges
+    
+  # Colors for different Frobenius elements
+  colors:
+    g0: "red"      # 1
+    g1: "blue"     # -1
+    g2: "green"    # i
+    g3: "orange"   # j
+    g4: "purple"   # k
+    theoretical: "black"
+    
+# Output settings
+output:
+  # Directory structure
+  directories:
+    data: "data/results"
+    graphs: "graphs/output"
+    logs: "logs"
+    
+  # File naming
+  naming:
+    frobenius_data: "case_{case_id:02d}_frobenius_{max_prime}.json"
+    bias_graphs: "case_{case_id:02d}_bias_{max_prime}.png"
+    summary_report: "summary_report_{timestamp}.html"
+    
+  # Data export formats
+  export:
+    json: true              # Export as JSON
+    csv: true               # Export as CSV
+    hdf5: false             # Export as HDF5 (for very large datasets)
+    
+# Case-specific settings
+cases:
+  # Enable/disable specific cases
+  enabled: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+  
+  # Priority order for computation (highest priority first)
+  priority: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+  
+  # Custom settings per case (if needed)
+  custom_settings: {}
+
+# Theoretical values for validation
+theory:
+  # Bias coefficients M(σ) + m(σ)
+  bias_coefficients:
+    m_rho0_0:  # When m_ρ₀ = 0
+      g0: 0.5    # 1
+      g1: 2.5    # -1
+      g2: -0.5   # i
+      g3: -0.5   # j
+      g4: -0.5   # k
+      g5: -0.5   # -i
+      g6: -0.5   # -j
+      g7: -0.5   # -k
+    m_rho0_1:  # When m_ρ₀ = 1
+      g0: 2.5    # 1
+      g1: 0.5    # -1
+      g2: -0.5   # i
+      g3: -0.5   # j
+      g4: -0.5   # k
+      g5: -0.5   # -i
+      g6: -0.5   # -j
+      g7: -0.5   # -k
+      
+  # Conjugacy class sizes
+  conjugacy_sizes:
+    g0: 1  # {1}
+    g1: 1  # {-1}
+    g2: 2  # {i, -i}
+    g3: 2  # {j, -j}
+    g4: 2  # {k, -k}
+    
+# Logging settings
+logging:
+  level: "INFO"             # DEBUG, INFO, WARNING, ERROR
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file_logging: true
+  console_logging: true
+  
+# Validation and testing
+validation:
+  # Run small-scale validation before large computations
+  run_validation: true
+  validation_max_prime: 1000
+  
+  # Statistical tests
+  statistical_tests:
+    enabled: true
+    confidence_level: 0.95
+    
+# Performance monitoring
+performance:
+  # Monitor computation time and memory usage
+  monitoring: true
+  
+  # Estimate completion time
+  time_estimation: true
+  
+  # Save performance metrics
+  save_metrics: true
